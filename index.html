@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KLASHBOX - Global Movies, Series & Animation</title>
+    <!-- Adsterra or site verification tags can go right here in the head -->
+    <style>
+        :root {
+            --bg-color: #0f1015;
+            --card-bg: #1a1c23;
+            --accent-color: #e50914;
+            --text-color: #ffffff;
+            --text-muted: #9ca3af;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #222;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+        header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .search-container {
+            padding: 15px 20px;
+        }
+        .search-container input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+        }
+        .search-container input:focus {
+            border-color: var(--accent-color);
+        }
+        .filters {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 0 20px 15px 20px;
+            scrollbar-width: none;
+        }
+        .filters::-webkit-scrollbar {
+            display: none;
+        }
+        .filter-btn {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid #333;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 0 20px;
+        }
+        .movie-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #222;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .movie-card:hover {
+            transform: translateY(-4px);
+        }
+        .poster-box {
+            width: 100%;
+            height: 220px;
+            background-color: #222;
+            position: relative;
+        }
+        .poster-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .movie-info {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+        .movie-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .movie-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .download-btn {
+            background-color: var(--accent-color);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+        /* Detail View Styles (For Deep Linking & Direct Movie Access) */
+        .detail-view {
+            padding: 20px;
+            display: none;
+        }
+        .detail-header {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        @media(min-width: 768px) {
+            .detail-header {
+                flex-direction: row;
+            }
+        }
+        .detail-poster {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .detail-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .detail-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .detail-overview {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .episode-section {
+            margin-top: 30px;
+        }
+        .episode-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+        .episode-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .episode-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1 onclick="goHome()">KLASHBOX</h1>
+            <p>Hollywood, Bollywood, Chinese, Korean, Yoruba, Igbo & Animation</p>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="homeView">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search any movie or series..." onkeyup="handleSearch(event)">
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn active" onclick="filterCategory('all', this)">Trending</button>
+                <button class="filter-btn" onclick="filterCategory('animation', this)">Animation</button>
+                <button class="filter-btn" onclick="filterCategory('nollywood', this)">Nollywood / Yoruba</button>
+                <button class="filter-btn" onclick="filterCategory('chinese', this)">Chinese</button>
+                <button class="filter-btn" onclick="filterCategory('korean', this)">Korean</button>
+                <button class="filter-btn" onclick="filterCategory('indian', this)">Bollywood</button>
+                <button class="filter-btn" onclick="filterCategory('hollywood', this)">Hollywood</button>
+            </div>
+
+            <div class="movie-grid" id="movieGrid">
+                <div class="loading">Loading global catalog...</div>
+            </div>
+        </div>
+
+        <!-- DETAIL VIEW (For Google Deep Linking & Direct Movie Access) -->
+        <div id="detailView" class="detail-view">
+            <a class="back-link" onclick="goHome()">← Back to Home</a>
+            <div id="movieDetailContent">
+                <!-- Dynamically loaded movie info and episodes go here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Replace with your TMDb API key when ready
+        const API_KEY = 'YOUR_TMDB_API_KEY';
+        const grid = document.getElementById('movieGrid');
+        const homeView = document.getElementById('homeView');
+        const detailView = document.getElementById('detailView');
+        const detailContent = document.getElementById('movieDetailContent');
+
+        // Check URL on load for deep linking (e.g. ?movie=12345)
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const movieId = urlParams.get('movie');
+
+            if (movieId) {
+                loadMovieDetails(movieId);
+            } else {
+                fetchMovies();
+            }
+        });
+
+        function goHome() {
+            window.history.pushState({}, '', window.location.pathname);
+            detailView.style.display = 'none';
+            homeView.style.display = 'block';
+            if(grid.children.length <= 1) fetchMovies();
+        }
+
+        async function fetchMovies(query = '') {
+            if (API_KEY === 'YOUR_TMDB_API_KEY') {
+                renderSampleCards();
+                return;
+            }
+
+            grid.innerHTML = '<div class="loading">Searching database...</div>';
+            let url = `https://api.themoviedb.org/3/trending/movie/day?api_key=${API_KEY}`;
+            
+            if(query) {
+                url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}`;
+            }
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                renderMovies(data.results);
+            } catch (error) {
+                grid.innerHTML = '<div class="loading">Connection error. Please check network.</div>';
+            }
+        }
+
+        function renderMovies(movies) {
+            if(!movies || movies.length === 0) {
+                grid.innerHTML = '<div class="loading">No movies found.</div>';
+                return;
+            }
+
+            grid.innerHTML = '';
+            movies.forEach(movie => {
+                const posterPath = movie.poster_path 
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
+                    : 'https://via.placeholder.com/150x220?text=No+Image';
+                
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.onclick = () => openMovie(movie.id);
+                
+                card.innerHTML = `
+                    <div class="poster-box">
+                        <img src="${posterPath}" alt="${movie.title || movie.name}">
+                    </div>
+                    <div class="movie-info">
+                        <div>
+                            <div class="movie-title">${movie.title || movie.name}</div>
+                            <div class="movie-meta">${(movie.release_date || '2026').split('-')[0]}</div>
+                        </div>
+                        <span class="download-btn">View & Download</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Open specific movie and update URL for Google deep linking
+        function openMovie(movieId) {
+            window.history.pushState({}, '', `?movie=${movieId}`);
+            loadMovieDetails(movieId);
+        }
+
+        async function loadMovieDetails(movieId) {
+            homeView.style.display = 'none';
+            detailView.style.display = 'block';
+            detailContent.innerHTML = '<div class="loading">Loading movie details and download links...</div>';
+
+            if (API_KEY === 'YOUR_TMDB_API_KEY') {
+                detailContent.innerHTML = `
+                    <div class="detail-header">
+                        <div style="width:250px; height:350px; background:#222; display:flex; align-items:center; justify-content:center; border-radius:8px; color:#777;">Sample Poster</div>
+                        <div class="detail-info">
+                            <h2 class="detail-title">Sample Global Movie Title</h2>
+                            <p class="detail-overview">This is a preview layout showing how movie descriptions, metadata, and episode download links render automatically when accessed directly from Google search results.</p>
+                        </div>
+                    </div>
+                    <div class="episode-section">
+                        <h3>Download Options / Episodes</h3>
+                        <div class="episode-grid">
+                            <div class="episode-item">
+                                <span>Full Movie / Episode 1</span>
+                                <a href="#" class="download-btn" onclick="triggerAdRedirect(event)">Download (Ad Link)</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}`);
+                const movie = await response.json();
+
+                const posterPath = movie.poster_path 
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
+                    : 'https://via.placeholder.com/300x450?text=No+Image';
+
+                detailContent.innerHTML = `
+                    <div class="detail-header">
+                        <img src="${posterPath}" class="detail-poster" alt="${movie.title}">
+                        <div class="detail-info">
+                            <h2 class="detail-title">${movie.title}</h2>
+                            <p><strong>Release Year:</strong> ${(movie.release_date || '').split('-')[0]}</p>
+                            <p><strong>Rating:</strong> ⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</p>
+                            <p class="detail-overview">${movie.overview || 'No description available.'}</p>
+                        </div>
+                    </div>
+                    <div class="episode-section">
+                        <h3>Download & Streaming Options</h3>
+                        <div class="episode-grid">
+                            <div class="episode-item">
+                                <span>High Quality Download (Server 1)</span>
+                                <!-- Replace '#' with your Adsterra Direct Link or ad trigger -->
+                                <a href="#" class="download-btn" target="_blank" onclick="triggerAdRedirect(event)">Download File</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                detailContent.innerHTML = '<div class="loading">Failed to load movie details.</div>';
+            }
+        }
+
+        // Ad redirect logic handler
+        function triggerAdRedirect(e) {
+            // Put your Adsterra direct link or popunder trigger logic here
+            // e.g., window.open('YOUR_ADSTERRA_DIRECT_LINK', '_blank');
+            console.log("Ad link triggered!");
+        }
+
+        function renderSampleCards() {
+            const samples = [
+                { id: 1, title: "Fighter of the Destiny", year: "2024", genre: "Chinese" },
+                { id: 2, title: "Anikulapo: Rise of the Spectre", year: "2024", genre: "Yoruba" },
+                { id: 3, title: "Interstellar", year: "2014", genre: "Hollywood" },
+                { id: 4, title: "Spider-Man: Across the Spider-Verse", year: "2023", genre: "Animation" }
+            ];
+
+            grid.innerHTML = '';
+            samples.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.onclick = () => openMovie(item.id);
+                card.innerHTML = `
+                    <div class="poster-box" style="display:flex; align-items:center; justify-content:center; background:#222; color:#777; font-size:0.8rem; text-align:center; padding:10px;">
+                        ${item.genre} Preview
+                    </div>
+                    <div class="movie-info">
+                        <div>
+                            <div class="movie-title">${item.title}</div>
+                            <div class="movie-meta">${item.year} • ${item.genre}</div>
+                        </div>
+                        <span class="download-btn">View & Download</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function handleSearch(e) {
+            if(e.key === 'Enter') {
+                fetchMovies(e.target.value);
+            }
+        }
+
+        function filterCategory(category, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if(category === 'all') {
+                fetchMovies('');
+            } else {
+                fetchMovies(category);
+            }
+        }
+
+        renderSampleCards();
+    </script>
+</body>
+</html>
